@@ -333,6 +333,256 @@ expect (startLearningButton).toBeInTheDocument();
   - use https://testing-playground.com/
 ```
 
+#### Test User Interactions
+
+- A click using a mouse or a keypress using a keyboard
+- Software has to respond to such interactions
+- Tests should ensure the interactions are handled as expected
+
+#### user-event
+
+- A companion library for Testing Library that simulates user interactions by dispatching the events that would happen if the interaction took place in a browser
+- It is the recommended way to test user interactions with RTL
+
+#### fireEvent vs user-event
+
+- fireEvent is a method from RTL which is used to dispatch DOM events
+- **user-event** simulates full interactions, which may fire multiple events and do additional checks along the way
+- For example, we can dispatch the change event on an input field using fireEvent When a user types into a text box, the element has to be focused, and then keyboard and input events are fired and the selection and value on the element are manipulated as they type user-event allows you to describe a user interaction instead of a concrete event.
+- It adds visibility and intractability checks along the way and manipulates the DOM just like a user interaction in the browser would.
+- It factors in that the browser e.g wouldn't let a user click a hidden element or type in a disabled text box
+
+#### Pointer Interactions
+
+- **Convenience APIs**
+  - click()
+  - dblClick()
+  - tripleClick()
+  - hover()
+  - tab()
+  - unhover()
+- **Utility APIs**
+  - clear() // empty input box
+  - selectOptions() // dropdown menu
+  - deSelectOptions() // unselect from dropdown menu
+  - upload() // file upload
+- **Clipboard APIs**
+  - cut()
+  - copy()
+  - paste()
+- **Clipboard APIs**
+  - keyboard('foo') // translates to: f, 0, 0
+  - keyboard('{Shift>}A{/Shift}") // translates to: Shift(down), A, Shift(up)
+- **Pointer APIs**
+  - pointer({keys: [MouseLeft]'})
+  - pointer({keys: '[MouseLeft][Mouseright]'})
+  - pointer('[Mouseleft][Mouseright]')
+  - pointer('[MouseLeft>]")
+  - pointer('[/MouseLeft]')
+- **Note:** use convenience api whenever possible
+
+#### Testing Providers
+
+```js
+import { render, screen } from "@testing-library/react";
+import { AppProviders } from "../../providers/app-providers";
+import { MuiMode } from "./mui-mode";
+
+describe("MuiMode", () => {
+  test("renders text correctly", () => {
+    // Add wrapper in options argument
+    render(<MuiMode />, {
+      wrapper: AppProviders,
+    });
+    const headingElement = screen.getByRole("heading");
+    expect(headingElement).toHaveTextContent("dark mode");
+  });
+});
+```
+
+#### Custom Renders
+
+- Used if same provider is used in a lot of components, we write a custom provider for that.
+
+```js
+import { ReactElement } from 'react'
+import { render, RenderOptions } from '@testing-library/react'
+import { AppProviders } from './providers/app-providers'
+
+const customRender = (
+  ui: ReactElement,
+  options?: Omit<RenderOptions, 'wrapper',
+)  => render (ui, {wrapper: AppProviders, ...options})
+
+export * from '@testing-library/react'
+export { customRender as render }
+```
+
+```js
+import { render, screen } from "../../test-utils"; // From custom Wrapper Import
+import { AppProviders } from "../../providers/app-providers";
+import { MuiMode } from "./mui-mode";
+
+describe("MuiMode", () => {
+  test("renders text correctly", () => {
+    render(<MuiMode />);
+    const headingElement = screen.getByRole("heading");
+    expect(headingElement).toHaveTextContent("dark mode");
+  });
+});
+```
+
+#### Testing Custom hooks
+
+- import { renderHook } from "@testing-library/react"
+- const { result } = renderHook(useCustomHook)
+- expect(result.current.count).toBe(1);
+
+```js
+const { result } = renderHook(useCounter, {
+  initialProps: {
+    initialCount: 10,
+  }
+};
+expect (result.current.count).toBe(10);
+```
+
+```js
+test ("should increment the count”, () => {
+  const { result } = renderHook(useCounter);
+  // wrap custom hook function call in act
+  act(() => result.current.increment());
+  expect (result.current.count).toBe(1);
+};
+```
+
+#### Mocking functions
+
+- use jest.fn() to mock functions
+
+```js
+test("handlers are called", async () => {
+  user.setup();
+  const incrementHandler = jest.fn();
+  const decrementHandler = jest.fn();
+  render(
+    <CounterTwo
+      count={0}
+      handleIncrement={incrementHandler}
+      handleDecrement={decrementHandler}
+    />
+  );
+  const incrementButton = screen.getByRole("button", { name: "Increment" });
+  const decrementButton = screen.getByRole("button", { name: "Decrement" });
+  await user.click(incrementButton);
+  await user.click(decrementButton);
+  expect(incrementHandler).toHaveBeenCalledTimes(1);
+  expect(decrementHandler).toHaveBeenCalledTimes(1);
+});
+```
+
+#### Mocking HTTP requests
+
+- use msw (mock service worker package)
+- `npm i -D msw` add as dev dependencies
+- add server and handlers files, use msw docs
+
+```js
+import { useState, useEffect } from "react";
+
+export const Users = () => {
+  const [users, setUsers] = useState<string[l>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("https://jsonplaceholder.typicode.com/users")
+    .then((res) => res.json())
+    .then( (data) => setUsers(data.map( (user: { name: string }) => user.name)))
+    .catch(() => setError("Error fetching users"));
+  }, []);
+
+return (
+  <div>
+    <h1>Users</h1>
+    {error & <p>{error}</p>}
+    <ul>
+      {users.map( (user) => (
+        <li key={user}>{user}</li>
+      ))}
+    </ul>
+  </div>
+);
+```
+
+```ts
+// setupTests.ts
+
+import "@testing-library/jest-dom";
+import { server } from "./mocks/server";
+// Establish API mocking before all tests.
+beforeAll(() => server.listen());
+// Reset any request handlers that we may add during the tests,
+// so they don't affect other tests.
+afterEach(() => server.resetHandlers());
+// Clean up after the tests are finished.
+afterAll(() => server.close());
+```
+
+```ts
+// src/mocks/server.js
+import { setupServer } from "msw/node";
+import { handlers } from "./handlers";
+
+// This configures a request mocking server with the given request handlers.
+export const server = setupServer(...handlers);
+```
+
+```ts
+// Handlers.ts
+import { rest } from "msw";
+
+export const handlers = [
+  rest.get("https://jsonplaceholder.typicode.com/users", (req, res, ctx) => {
+    return res(
+      ctx.status (200),
+      ctx.json([
+      {
+      name: "Bruce Wayne",
+      },
+      {
+      name: "Clark Kent",
+      },
+      {
+      name: "Princess Diana",
+      }]
+    )})
+];
+```
+
+```ts
+import { render, screen } from "@testing-library/react";
+import { rest } from "msw";
+import { Users } from "./users";
+import { server } from "../../mocks/server";
+
+describe("Users", () => {
+  test("renders a list of users", async () => {
+    render (<Users />);
+    const users = await screen. findAl1ByRole("listitem");
+    expect (users). toHavelLength(3);
+  }
+
+  test("renders error", async () => {
+      server.use(
+        rest.get("https://jsonplaceholder.typicode.com/users",
+          (req, res, ctx) => res(ctx.status(500))))
+      render (<Users />);
+      const error = await screen.findByText("Error fetching users");
+      expect (error).toBeInTheDocument();
+  })
+})
+```
+
 #### Test Driven Development (TDD)
 
 - Test driven development is a software development process where you write tests
@@ -342,3 +592,22 @@ expect (startLearningButton).toBeInTheDocument();
 - Write software code that will run the tests successfully when re-executed
 - Refactor the code for optimization while ensuring the tests continue to pass
 - Also called red-green testing as all tests go from a red failed state to a green.
+
+#### Static analysis testing
+
+- Process of verifying that your code meets certain expectations without actually running it
+- Ensure consistent style and formatting
+- Check for common mistakes and possible bugs
+- Limit the complexity of code and
+- Verify type consistency
+- All types of tests run the code and then compare the outcome against known expected outputs to see if everything works OK
+- Static testing analyses aspects such as readability, consistency, error handling, type checking, and alignment with best practices
+- Testing checks if your code works or not, whereas static analysis checks if it is written well or not
+
+#### Static analysis testing tools
+
+- TypeScript
+- ESlint
+- Prettier
+- Husky
+- lint-staged

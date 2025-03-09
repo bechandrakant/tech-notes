@@ -606,8 +606,103 @@ describe("Users", () => {
 
 #### Static analysis testing tools
 
-- TypeScript
-- ESlint
-- Prettier
-- Husky
-- lint-staged
+- Used to improve code quality
+  - TypeScript
+  - ESlint
+  - Prettier
+  - Husky
+  - lint-staged
+
+##### ESLint
+
+- ESLint is a linter which identifies and reports patterns in our source code to avoid bugs when possible
+- `npm i -D eslint-plugin-jest-dom`
+- Add plugin in eslintConfig in package.json
+
+```json
+// package.json
+"eslintConfig": {
+  "extends": [
+    "react-app",
+    "react-app/jest",
+    "plugin: jest-dom/ recommended"
+  ]
+}
+```
+
+- Add in npm scripts `"lint": "eslint —-ignore-path .gitignore ."`
+- `npm run lint`
+
+##### Prettier
+
+- Prettier is an opinionated code formatter that ensures that all outputted code conforms to a consistent style
+- `npm i -D --exact prettier`
+- Add in npm scripts to format all files except mentioned in .gitignore
+- `"format": "prettier --ignore-path .gitignore —-write \"**/*.{ts,tsx,css,scss}\""`
+- `npm run format` to run prettier
+
+- To create custom prettier config add `.prettierrc.json` parallel to package.json
+
+```json
+{
+  "semi": false,
+  "singleQuote": true
+}
+```
+
+- using eslint and prettier can cause some conflicting rules.
+- To address do `npm i -D eslint-config-prettier`
+- Add to eslintConfig
+
+```json
+// package.json
+"eslintConfig": {
+  "extends": [
+    "react-app",
+    "react-app/jest",
+    "plugin: jest-dom/ recommended",
+    "eslint-config-prettier"
+  ]
+}
+```
+
+- To create custom eslint config add `.eslintrc.json` parallel to package.json
+
+#### Husky
+
+- Husky is a tool that helps improve your commits and more
+- `npx husky-init && npm` sets up husky, modifies package.json and create a sample pre commit hook that we can edit.
+
+```js
+// File path: .husky > pre-commit
+#!/usr/bin/env sh
+. "$(dirname —— "$0")/_/husky.sh"
+npm run lint && npm run format
+```
+
+- Anytime we try to commit, scripts in pre-commit file is run, if scripts throws an error commits are aborted
+- With husky we can ensure developers can't commit code with linting errors and the code they commit are already formatted.
+
+#### lint-staged
+
+- Run linters (and formatters) against staged git files
+- Install as dev dependencies `npm i -D lint-staged`
+
+```json
+"lint-staged": {
+  "*.{ts, tsx}": ["eslint"],
+  "*.{ts, tsx, css, scss}": ["prettier --write"]
+}
+```
+
+```js
+// File path: .husky > pre-commit
+#!/usr/bin/env sh
+. "$(dirname —— "$0")/_/husky.sh"
+npx lint-staged
+```
+
+```json
+// Creates pre push hook, all test run, will commit only if all test pass
+npx husky add .husky/pre-push "npm test — —-watchAll=false"
+```

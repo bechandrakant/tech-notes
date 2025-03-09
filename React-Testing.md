@@ -302,11 +302,35 @@ describe("Application”, () = {
   7. findAllByTitle
   8. findAllByTestld
 
+```js
+test ("Start learning button is eventually displayed", async () => {
+render (<Skills skills={skills} />);
+const startLearningButton = await screen.findByRole("button", { name: "Start learning" }, { timeout: 2000});
+expect (startLearningButton).toBeInTheDocument();
+```
+
 ```
   Note:
   - getBy and getAllBy class of queries to assert if elements are present in the DOM
   - queryBy and queryAlIBy class of queries to assert if elements are not present in the DOM
   - findBy and findAlIBy class of queries to assert if elements are eventually present in the DOM
+```
+
+#### Manual queries
+
+- document.querySelector("...query")
+- NOT recommended to use.
+
+#### Debugging test
+
+```
+- Approach 1: screen.debug()
+- Approach 2:
+  - import { logRoles } from "@testing-library/react"
+  - const view = render(<App />)
+  - logRoles(view.container)
+- Approach 3:
+  - use https://testing-playground.com/
 ```
 
 #### Test Driven Development (TDD)

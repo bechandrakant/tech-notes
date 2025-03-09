@@ -277,10 +277,36 @@ describe("Application”, () = {
   7. queryAllByTitle
   8. queryAllByTestld
 
+#### findBy and findAllBy
+
+- **findBy**
+- Returns a Promise which resolves when an element is found which matches the given query
+- The promise is rejected if no element is found or if more than one element is found after a default timeout of 1000ms
+  1. findByRole
+  2. findBylLabelText
+  3. findByPlaceholderText
+  4. findByText
+  5. findByDisplayValue
+  6. findByAltText
+  7. findByTitle
+  8. findByTestld
+- **findAllBy**
+- Returns a promise which resolves to an array of elements when any elements are found which match the given query.
+- The promise is rejected if no elements are found after a default timeout of 1000ms.
+  1. findAllByRole
+  2. findAllBylLabelText
+  3. findAllByPlaceholderText
+  4. findAllByText
+  5. findAllByDisplayValue
+  6. findAllByAltText
+  7. findAllByTitle
+  8. findAllByTestld
+
 ```
   Note:
   - getBy and getAllBy class of queries to assert if elements are present in the DOM
   - queryBy and queryAlIBy class of queries to assert if elements are not present in the DOM
+  - findBy and findAlIBy class of queries to assert if elements are eventually present in the DOM
 ```
 
 #### Test Driven Development (TDD)

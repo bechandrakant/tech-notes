@@ -62,9 +62,14 @@
 - A/B testing, also known as split testing, is a method used to compare two versions of a webpage or application to determine which one performs better. It is a statistical experiment in which different variations of a page or feature are presented to users randomly, and their responses are analyzed to determine which variation is more effective.
 - **Tools:** AB Tasty, Optimizely
 
-### TDD
+### Test Driven Development (TDD)
 
 - TDD stands for Test-Driven Development. It is a software development methodology in which tests are written before the actual code that needs to be implemented.
+- Once the tests have been written, you then write the code to ensure the tests pass
+- Create tests that verify the functionality of a specific feature
+- Write software code that will run the tests successfully when re-executed
+- Refactor the code for optimization while ensuring the tests continue to pass
+- Also called red-green testing as all tests go from a red failed state to a green.
 
 ```
 TDD follows a cycle ofsteps:
@@ -657,16 +662,6 @@ describe("Users", () => {
   })
 })
 ```
-
-#### Test Driven Development (TDD)
-
-- Test driven development is a software development process where you write tests
-  before writing the software code
-- Once the tests have been written, you then write the code to ensure the tests pass
-- Create tests that verify the functionality of a specific feature
-- Write software code that will run the tests successfully when re-executed
-- Refactor the code for optimization while ensuring the tests continue to pass
-- Also called red-green testing as all tests go from a red failed state to a green.
 
 #### Static analysis testing
 
